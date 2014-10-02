@@ -7,7 +7,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import common.TextMessage;
+import common.Message;
 
 /**
  * simple chat client
@@ -18,7 +18,7 @@ public class Client implements Runnable {
 			throw new RuntimeException("Syntax: ChatClient <host> <port>");
 
 		Client client = new Client(args[0], Integer.parseInt(args[1]));
-		new Gui("Chat " + args[0] + ":" + args[1], client);
+
 	}
 
 	protected ObjectInputStream inputStream;
@@ -27,7 +27,10 @@ public class Client implements Runnable {
 
 	protected Thread thread;
 
+	private final Gui g;
+
 	public Client(String host, int port) {
+
 		try {
 			System.out.println("Connecting to " + host + " (port " + port
 					+ ")...");
@@ -39,11 +42,17 @@ public class Client implements Runnable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		g = new Gui("Chat " + host + ":" + new Integer(port).toString(), this);
+	}
+
+	public Gui getGui() {
+		return g;
 	}
 
 	/**
 	 * main method. waits for incoming messages.
 	 */
+	@Override
 	public void run() {
 		try {
 			while (true) {
@@ -75,17 +84,19 @@ public class Client implements Runnable {
 	 *            the message (Object) received from the sockets
 	 */
 	protected void handleIncomingMessage(Object msg) {
-		if (msg instanceof TextMessage) {
-			fireAddLine(((TextMessage) msg).getContent() + "\n");
+		if (msg instanceof Message) {
+			fireAddLine(((Message) msg).getContent() + "\n");
 		}
 	}
 
 	public void send(String line) {
-		send(new TextMessage(line));
+		send(new Message("msg", line));
 	}
 
-	public void send(TextMessage msg) {
+	public void send(Message msg) {
 		try {
+			System.out.println("sending message with header: "
+					+ msg.getHeader());
 			outputStream.writeObject(msg);
 			outputStream.flush();
 		} catch (IOException ex) {
@@ -97,7 +108,7 @@ public class Client implements Runnable {
 	/**
 	 * listener-list for the observer pattern
 	 */
-	private ArrayList listeners = new ArrayList();
+	private final ArrayList listeners = new ArrayList();
 
 	/**
 	 * addListner method for the observer pattern

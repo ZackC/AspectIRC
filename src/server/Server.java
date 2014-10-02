@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import common.Message;
+
 /**
  * server's main class. accepts incoming connections and allows broadcasting
  */
@@ -59,11 +61,11 @@ public class Server {
 	 * @param text
 	 *            content of the message
 	 */
-	public void broadcast(String text) {
+	public void broadcast(Message msg) {
 		synchronized (connections) {
 			for (Iterator iterator = connections.iterator(); iterator.hasNext();) {
 				Connection connection = (Connection) iterator.next();
-				connection.send(text);
+				connection.send(msg);
 			}
 		}
 	}

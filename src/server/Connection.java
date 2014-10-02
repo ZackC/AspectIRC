@@ -5,7 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import common.TextMessage;
+import common.Message;
 
 /**
  * class for an individual connection to a client. allows to send messages to
@@ -18,7 +18,7 @@ public class Connection extends Thread {
 
 	protected ObjectOutputStream outputStream;
 
-	private Server server;
+	private final Server server;
 	private boolean connectionOpen = true;
 
 	public Connection(Socket s, Server server) {
@@ -36,10 +36,11 @@ public class Connection extends Thread {
 	/**
 	 * waits for incoming messages from the socket
 	 */
+	@Override
 	public void run() {
 		String clientName = socket.getInetAddress().toString();
 		try {
-			server.broadcast(clientName + " has joined.");
+			server.broadcast(new Message("msg", clientName + " has joined."));
 			while (connectionOpen) {
 
 				try {
@@ -54,7 +55,7 @@ public class Connection extends Thread {
 			ex.printStackTrace();
 		} finally {
 			server.removeConnection(this);
-			server.broadcast(clientName + " has left.");
+			server.broadcast(new Message("msg", clientName + " has left."));
 			try {
 				socket.close();
 			} catch (IOException ex) {
@@ -72,8 +73,8 @@ public class Connection extends Thread {
 	 *            received message
 	 */
 	private void handleIncomingMessage(String name, Object msg) {
-		if (msg instanceof TextMessage)
-			server.broadcast(name + " - " + ((TextMessage) msg).getContent());
+		if (msg instanceof Message)
+			server.broadcast((Message) msg);
 	}
 
 	/**
@@ -83,10 +84,10 @@ public class Connection extends Thread {
 	 *            text of the message
 	 */
 	public void send(String line) {
-		send(new TextMessage(line));
+		send(new Message("msg", line));
 	}
 
-	public void send(TextMessage msg) {
+	public void send(Message msg) {
 		try {
 			synchronized (outputStream) {
 				outputStream.writeObject(msg);

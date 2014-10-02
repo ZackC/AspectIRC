@@ -8,6 +8,8 @@ import java.awt.TextField;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import client.OptionsPanel;
+
 /**
  * simple AWT gui for the chat client
  */
@@ -19,15 +21,17 @@ public class Gui extends Frame implements ChatLineListener {
 
 	protected TextField inputField;
 
-	private Client chatClient;
+	private final Client chatClient;
+
+	private final OptionsPanel optionFrame;
 
 	/**
 	 * creates layout
 	 * 
 	 * @param title
-	 *          title of the window
+	 *            title of the window
 	 * @param chatClient
-	 *          chatClient that is used for sending and receiving messages
+	 *            chatClient that is used for sending and receiving messages
 	 */
 	public Gui(String title, final Client chatClient) {
 		super(title);
@@ -49,6 +53,8 @@ public class Gui extends Frame implements ChatLineListener {
 			}
 		});
 		add("South", inputField);
+		optionFrame = new OptionsPanel(this);
+		add("East", optionFrame);
 
 		// register listener so that we are informed whenever a new chat message
 		// is received (observer pattern)
@@ -61,10 +67,15 @@ public class Gui extends Frame implements ChatLineListener {
 		this.chatClient = chatClient;
 	}
 
+	public TextArea getTextArea() {
+		return outputTextbox;
+	}
+
 	/**
 	 * this method gets called every time a new message is received (observer
 	 * pattern)
 	 */
+	@Override
 	public void newChatLine(String line) {
 		outputTextbox.append(line);
 	}
@@ -72,6 +83,7 @@ public class Gui extends Frame implements ChatLineListener {
 	/**
 	 * handles AWT events (enter in textfield and closing window)
 	 */
+	@Override
 	public boolean handleEvent(Event e) {
 		// if ((e.target == inputField) && (e.id == Event.ACTION_EVENT)) {
 		// chatClient.send((String) e.arg);
